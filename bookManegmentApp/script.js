@@ -1,84 +1,89 @@
 let books = [];
-let sortAscending = true;
 
-const IMAGE_URL = "https://m.media-amazon.com/images/I/71ZB18P3inL._SY522_.jpg";
+const imageUrl =
+    "https://m.media-amazon.com/images/I/71ZB18P3inL._SY522_.jpg";
 
-document.addEventListener("DOMContentLoaded", () => {
-    const addBtn = document.getElementById("addBookBtn");
-    const sortBtn = document.getElementById("sortBtn");
-    const filterDropdown = document.getElementById("filterCategory");
+// DOM elements
+const titleInput = document.getElementById("title");
+const authorInput = document.getElementById("author");
+const categorySelect = document.getElementById("category");
+const bookList = document.getElementById("bookList");
 
-    if (addBtn) addBtn.addEventListener("click", addBook);
-    if (sortBtn) sortBtn.addEventListener("click", sortBooks);
-    if (filterDropdown) filterDropdown.addEventListener("change", renderUI);
-});
+document.getElementById("addBookBtn").addEventListener("click", addBook);
+document.getElementById("sortAZ").addEventListener("click", () => sortBooks("ASC"));
+document.getElementById("sortZA").addEventListener("click", () => sortBooks("DESC"));
+document.getElementById("filterCategory").addEventListener("change", filterBooks);
 
+// Add Book
 function addBook() {
-    let title = document.getElementById("title").value.trim();
-    let author = document.getElementById("author").value.trim();
-    let category = document.getElementById("category").value;
+    const title = titleInput.value.trim();
+    const author = authorInput.value.trim();
+    const category = categorySelect.value;
 
-    if (!title || !author) {
-        alert("Please fill all fields");
+    if (!title || !author || !category) {
+        alert("Please fill all fields!");
         return;
     }
 
-    let book = {
+    const newBook = {
         title,
         author,
         category,
-        imageUrl: IMAGE_URL
+        imageUrl
     };
 
-    books.push(book);
-    document.getElementById("title").value = "";
-    document.getElementById("author").value = "";
+    books.push(newBook);
+    renderBooks(books);
 
-    renderUI();
+    titleInput.value = "";
+    authorInput.value = "";
+    categorySelect.value = "";
 }
 
-function sortBooks() {
-    books.sort((a, b) => {
-        return sortAscending
-            ? a.title.localeCompare(b.title)
-            : b.title.localeCompare(a.title);
-    });
-
-    sortAscending = !sortAscending;
-    document.getElementById("sortBtn").innerText = sortAscending
-        ? "Sort A → Z"
-        : "Sort Z → A";
-
-    renderUI();
-}
-
-function deleteBook(index) {
-    books.splice(index, 1);
-    renderUI();
-}
-
-function renderUI() {
-    let bookList = document.getElementById("bookList");
-    if (!bookList) return;
-
-    let filterValue = document.getElementById("filterCategory").value;
-
+// Render Books
+function renderBooks(list) {
     bookList.innerHTML = "";
 
-    books
-        .filter(book => filterValue === "All" || book.category === filterValue)
-        .forEach((book, index) => {
-            let card = document.createElement("div");
-            card.className = "card";
+    list.forEach((book, index) => {
+        const card = document.createElement("div");
+        card.className = "card";
 
-            card.innerHTML = `
-                <img src="${book.imageUrl}" alt="Book" />
-                <h3>${book.title}</h3>
-                <p><strong>Author:</strong> ${book.author}</p>
-                <p><strong>Category:</strong> ${book.category}</p>
-                <button class="deleteBtn" onclick="deleteBook(${index})">Delete</button>
-            `;
+        card.innerHTML = `
+            <img src="${book.imageUrl}" alt="book">
+            <h3>${book.title}</h3>
+            <p>Author: ${book.author}</p>
+            <p>Category: ${book.category}</p>
+            <button class="delete-btn" onclick="deleteBook(${index})">Delete</button>
+        `;
 
-            bookList.appendChild(card);
-        });
+        bookList.appendChild(card);
+    });
+}
+
+// Delete Book
+function deleteBook(index) {
+    books.splice(index, 1);
+    renderBooks(books);
+}
+
+// Sort Books
+function sortBooks(order) {
+    books.sort((a, b) =>
+        order === "ASC"
+            ? a.title.localeCompare(b.title)
+            : b.title.localeCompare(a.title)
+    );
+    renderBooks(books);
+}
+
+// Filter Books
+function filterBooks() {
+    const selected = document.getElementById("filterCategory").value;
+
+    if (selected === "All") {
+        renderBooks(books);
+    } else {
+        const filtered = books.filter(book => book.category === selected);
+        renderBooks(filtered);
+    }
 }
